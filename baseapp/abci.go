@@ -565,10 +565,40 @@ func (app *BaseApp) ProcessProposal(req *abci.ProcessProposalRequest) (resp *abc
 		}
 	}()
 
+<<<<<<< HEAD
 	resp, err = app.processProposal(app.processProposalState.Context(), req)
 	if err != nil {
 		app.logger.Error("failed to process proposal", "height", req.Height, "time", req.Time, "hash", fmt.Sprintf("%X", req.Hash), "err", err)
 		return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, nil
+=======
+	resp = app.processProposal(ctx, req)
+	return resp
+}
+
+// CheckTx implements the ABCI interface and executes a tx in CheckTx mode. In
+// CheckTx mode, messages are not executed. This means messages are only validated
+// and only the AnteHandler is executed. State is persisted to the BaseApp's
+// internal CheckTx state if the AnteHandler passes. Otherwise, the ResponseCheckTx
+// will contain relevant error information. Regardless of tx execution outcome,
+// the ResponseCheckTx will contain relevant gas execution context.
+func (app *BaseApp) CheckTx(req abci.RequestCheckTx) abci.ResponseCheckTx {
+	var mode runTxMode
+
+	switch {
+	case req.Type == abci.CheckTxType_New:
+		mode = runTxModeCheck
+
+	case req.Type == abci.CheckTxType_Recheck:
+		mode = runTxModeReCheck
+
+	default:
+		panic(fmt.Sprintf("unknown RequestCheckTx type: %s", req.Type))
+	}
+
+	gInfo, result, events, priority, err := app.runTx(mode, req.Tx)
+	if err != nil {
+		return sdkerrors.ResponseCheckTxWithEvents(err, gInfo.GasWanted, gInfo.GasUsed, events, app.trace)
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 	}
 
 	// Only execute optimistic execution if the proposal is accepted, OE is
@@ -921,6 +951,7 @@ func (app *BaseApp) FinalizeBlock(req *abci.FinalizeBlockRequest) (res *abci.Fin
 		// Wait for the OE to finish, regardless of whether it was aborted or not
 		res, err = app.optimisticExec.WaitResult()
 
+<<<<<<< HEAD
 		// only return if we are not aborting
 		if !aborted {
 			if res != nil {
@@ -933,6 +964,12 @@ func (app *BaseApp) FinalizeBlock(req *abci.FinalizeBlockRequest) (res *abci.Fin
 		// if it was aborted, we need to reset the state
 		app.finalizeBlockState = nil
 		app.optimisticExec.Reset()
+=======
+	gInfo, result, events, _, err := app.runTx(runTxModeDeliver, req.Tx)
+	if err != nil {
+		resultStr = "failed"
+		return sdkerrors.ResponseDeliverTxWithEvents(err, gInfo.GasWanted, gInfo.GasUsed, sdk.MarkEventsToIndex(events, app.indexEvents), app.trace)
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 	}
 
 	// if no OE is running, just run the block (this is either a block replay or a OE that got aborted)

@@ -76,6 +76,7 @@ type BaseApp struct {
 	txDecoder         sdk.TxDecoder // unmarshal []byte into sdk.Tx
 	txEncoder         sdk.TxEncoder // marshal sdk.Tx into []byte
 
+<<<<<<< HEAD
 	mempool     mempool.Mempool // application side mempool
 	anteHandler sdk.AnteHandler // ante handler for fee and auth
 	postHandler sdk.PostHandler // post handler, optional
@@ -97,6 +98,19 @@ type BaseApp struct {
 	idPeerFilter   sdk.PeerFilter // filter peers by node ID
 	fauxMerkleMode bool           // if true, IAVL MountStores uses MountStoresDB for simulation speed.
 	sigverifyTx    bool           // in the simulation test, since the account does not have a private key, we have to ignore the tx sigverify.
+=======
+	mempool         mempool.Mempool            // application side mempool
+	anteHandler     sdk.AnteHandler            // ante handler for fee and auth
+	postHandler     sdk.PostHandler            // post handler, optional, e.g. for tips
+	initChainer     sdk.InitChainer            // initialize state with validators and state blob
+	beginBlocker    sdk.BeginBlocker           // logic to run before any txs
+	processProposal sdk.ProcessProposalHandler // the handler which runs on ABCI ProcessProposal
+	prepareProposal sdk.PrepareProposalHandler // the handler which runs on ABCI PrepareProposal
+	endBlocker      sdk.EndBlocker             // logic to run after all txs, and to determine valset changes
+	addrPeerFilter  sdk.PeerFilter             // filter peers by address and port
+	idPeerFilter    sdk.PeerFilter             // filter peers by node ID
+	fauxMerkleMode  bool                       // if true, IAVL MountStores uses MountStoresDB for simulation speed.
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 
 	// manages snapshots, i.e. dumps of app state at certain intervals
 	snapshotManager *snapshots.Manager
@@ -833,13 +847,22 @@ type HasNestedMsgs interface {
 // Note, gas execution info is always returned. A reference to a Result is
 // returned if the tx does not run out of gas and if all the messages are valid
 // and execute successfully. An error is returned otherwise.
+<<<<<<< HEAD
 // both txbytes and the decoded tx are passed to runTx to avoid the state machine encoding the tx and decoding the transaction twice
 // passing the decoded tx to runTX is optional, it will be decoded if the tx is nil
 func (app *BaseApp) runTx(mode execMode, txBytes []byte, tx sdk.Tx) (gInfo sdk.GasInfo, result *sdk.Result, anteEvents []abci.Event, err error) {
+=======
+func (app *BaseApp) runTx(mode runTxMode, txBytes []byte) (gInfo sdk.GasInfo, result *sdk.Result, events []abci.Event, priority int64, err error) {
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 	// NOTE: GasWanted should be returned by the AnteHandler. GasUsed is
 	// determined by the GasMeter. We need access to the context to get the gas
 	// meter, so we initialize upfront.
 	var gasWanted uint64
+
+	var (
+		anteEvents []abci.Event
+		postEvents []abci.Event
+	)
 
 	ctx := app.getContextForTx(mode, txBytes)
 	ms := ctx.MultiStore()
@@ -945,10 +968,16 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte, tx sdk.Tx) (gInfo sdk.G
 			return gInfo, nil, nil, err
 		}
 
+<<<<<<< HEAD
 		msCache.Write()
+=======
+		priority = ctx.Priority()
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 		anteEvents = events.ToABCIEvents()
+		msCache.Write()
 	}
 
+<<<<<<< HEAD
 	if mode == execModeCheck {
 		err = app.mempool.Insert(ctx, tx)
 		if err != nil {
@@ -959,7 +988,21 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte, tx sdk.Tx) (gInfo sdk.G
 		if err != nil && !errors.Is(err, mempool.ErrTxNotFound) {
 			return gInfo, nil, anteEvents,
 				fmt.Errorf("failed to remove tx from mempool: %w", err)
+=======
+	// insert or remove the transaction from the mempool
+	switch mode {
+	case runTxModeCheck:
+		err = app.mempool.Insert(ctx, tx)
+	case runTxModeDeliver:
+		err = app.mempool.Remove(tx)
+		if err != nil && !errors.Is(err, mempool.ErrTxNotFound) {
+			err = fmt.Errorf("failed to remove tx from mempool: %w", err)
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 		}
+	}
+
+	if err != nil {
+		return gInfo, nil, events, priority, err
 	}
 
 	// Create a new Context based off of the existing Context with a MultiStore branch
@@ -970,6 +1013,7 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte, tx sdk.Tx) (gInfo sdk.G
 	// Attempt to execute all messages and only update state if all messages pass
 	// and we're in DeliverTx. Note, runMsgs will never return a reference to a
 	// Result if any single message fails or does not have a registered Handler.
+<<<<<<< HEAD
 	reflectMsgs, err := tx.GetReflectMessages()
 	if err == nil {
 		result, err = app.runMsgs(runMsgCtx, msgs, reflectMsgs, mode)
@@ -996,6 +1040,24 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte, tx sdk.Tx) (gInfo sdk.G
 		newCtx, errPostHandler := app.postHandler(postCtx, tx, mode == execModeSimulate, err == nil)
 		if errPostHandler != nil {
 			return gInfo, nil, anteEvents, errors.Join(err, errPostHandler)
+=======
+	result, err = app.runMsgs(runMsgCtx, msgs, mode)
+
+	// Case 1: the msg errors and the post handler is not set.
+	if err != nil && app.postHandler == nil {
+		return gInfo, nil, anteEvents, priority, err
+	}
+
+	// Case 2: tx errors and the post handler is set. Run PostHandler and revert state from runMsgs
+	if err != nil && app.postHandler != nil {
+		// Run optional postHandlers with a context branched off the ante handler ctx
+		postCtx, postCache := app.cacheTxContext(ctx, txBytes)
+
+		newCtx, err := app.postHandler(postCtx, tx, mode == runTxModeSimulate, err == nil)
+		if err != nil {
+			// return result in case the pointer has been modified by the post decorators
+			return gInfo, result, events, priority, err
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 		}
 
 		// we don't want runTx to panic if runMsgs has failed earlier
@@ -1010,16 +1072,69 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte, tx sdk.Tx) (gInfo sdk.G
 			// When block gas exceeds, it'll panic and won't commit the cached store.
 			consumeBlockGas()
 
-			msCache.Write()
+			postCache.Write()
 		}
 
 		if len(anteEvents) > 0 && (mode == execModeFinalize || mode == execModeSimulate) {
 			// append the events in the order of occurrence
-			result.Events = append(anteEvents, result.Events...)
+			postEvents = newCtx.EventManager().ABCIEvents()
+			events = make([]abci.Event, len(anteEvents)+len(postEvents))
+			copy(events[:len(anteEvents)], anteEvents)
+			copy(events[len(anteEvents):], postEvents)
+			result.Events = append(result.Events, events...)
+		} else {
+			events = make([]abci.Event, len(postEvents))
+			copy(events, postEvents)
+			result.Events = append(result.Events, postEvents...)
+		}
+
+		return gInfo, result, events, priority, err
+	}
+
+	// Case 3: tx successful and post handler is set. Run Post Handler with runMsgCtx so that the state from runMsgs is persisted
+	if app.postHandler != nil {
+		newCtx, err := app.postHandler(runMsgCtx, tx, mode == runTxModeSimulate, err == nil)
+		if err != nil {
+			return gInfo, nil, nil, priority, err
+		}
+
+		postEvents = newCtx.EventManager().Events().ToABCIEvents()
+		result.Events = append(result.Events, postEvents...)
+
+		if len(anteEvents) > 0 {
+			events = make([]abci.Event, len(anteEvents)+len(postEvents))
+			copy(events[:len(anteEvents)], anteEvents)
+			copy(events[len(anteEvents):], postEvents)
+		} else {
+			events = make([]abci.Event, len(postEvents))
+			copy(events, postEvents)
 		}
 	}
 
+<<<<<<< HEAD
 	return gInfo, result, anteEvents, err
+=======
+	// Case 4: tx successful and post handler is not set.
+
+	if mode == runTxModeDeliver {
+		// When block gas exceeds, it'll panic and won't commit the cached store.
+		consumeBlockGas()
+
+		msCache.Write()
+	}
+
+	if len(anteEvents) > 0 && (mode == runTxModeDeliver || mode == runTxModeSimulate) {
+		// append the events in the order of occurrence:
+		// 	1. AnteHandler events
+		// 	2. Transaction Result events
+		// 	3. PostHandler events
+		result.Events = append(anteEvents, result.Events...)
+
+		copy(events, result.Events)
+	}
+
+	return gInfo, result, events, priority, err
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 }
 
 // runMsgs iterates through a list of messages and executes them with the provided

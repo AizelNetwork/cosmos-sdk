@@ -1,11 +1,15 @@
 package keeper
 
 import (
+	"context"
+	"fmt"
+
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/x/nft"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Keeper of the nft store
@@ -32,4 +36,35 @@ func NewKeeper(env appmodule.Environment,
 		bk:          bk,
 		ac:          ak.AddressCodec(),
 	}
+}
+
+// x/nft/keeper/keeper.go (example)
+func (k Keeper) generateClassID(ctx context.Context) string {
+	// 1. Open store
+	store := k.KVStoreService.OpenKVStore(ctx)
+
+	// 2. Get the current counter
+	bz, err := store.Get([]byte("class_id_counter"))
+	if err != nil {
+		panic(err) // or handle error gracefully
+	}
+
+	var counter uint64
+	if len(bz) == 0 {
+		counter = 0
+	} else {
+		counter = sdk.BigEndianToUint64(bz)
+	}
+
+	// 3. Increment
+	counter++
+
+	// 4. Save back
+	err = store.Set([]byte("class_id_counter"), sdk.Uint64ToBigEndian(counter))
+	if err != nil {
+		panic(err)
+	}
+
+	// 5. Produce the ID string
+	return fmt.Sprintf("class-%d", counter)
 }

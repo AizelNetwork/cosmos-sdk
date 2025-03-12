@@ -65,7 +65,7 @@ func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, _ bool, 
 			switch rType := r.(type) {
 			case storetypes.ErrorOutOfGas:
 				log := fmt.Sprintf(
-					"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
+					"out of gas in location: %v; gasWanted: %d, gasUsed: %d. Please retry with a gas (--gas flag) amount higher than gasUsed",
 					rType.Descriptor, gasTx.GetGas(), newCtx.GasMeter().GasConsumed())
 
 				err = errorsmod.Wrap(sdkerrors.ErrOutOfGas, log)

@@ -36,6 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+<<<<<<< HEAD
 ## [Unreleased]
 
 Every module contains its own CHANGELOG.md. Please refer to the module you are interested in.
@@ -1252,14 +1253,71 @@ extension interfaces. `module.Manager.Modules` is now of type `map[string]interf
 * (server) [#13778](https://github.com/cosmos/cosmos-sdk/pull/13778) Set Cosmos SDK default endpoints to localhost to avoid unknown exposure of endpoints.
 * (x/auth) [#13877](https://github.com/cosmos/cosmos-sdk/pull/13877) Handle missing account numbers during `InitGenesis`.
 * (x/gov) [#13918](https://github.com/cosmos/cosmos-sdk/pull/13918) Propagate message errors when executing a proposal.
+=======
+## [v0.46.10-alpha.ledger.2](https://github.com/evmos/cosmos-sdk/releases/tag/v0.46.10-alpha.ledger.2) - 2023-03-15
 
-### Deprecated
+### Improvements
 
-* (x/evidence) [#13740](https://github.com/cosmos/cosmos-sdk/pull/13740) The `evidence_hash` field of `QueryEvidenceRequest` has been deprecated and now contains a new field `hash` with type `string`.
-* (x/bank) [#11859](https://github.com/cosmos/cosmos-sdk/pull/11859) The Params.SendEnabled field is deprecated and unusable.
-  The information can now be accessed using the BankKeeper.
-  Setting can be done using MsgSetSendEnabled as a governance proposal.
-  A SendEnabled query has been added to both GRPC and CLI.
+* (release) [#26](https://github.com/evmos/cosmos-sdk/pull/26) Change naming convention to keep reference of underlying cosmos-sdk version
+
+### Bug Fixes
+
+* (cli) [#22](https://github.com/evmos/cosmos-sdk/pull/22) Rollback `--fees auto` flag
+
+## [v0.46.10-alpha.ledger.1](https://github.com/evmos/cosmos-sdk/releases/tag/v0.46.10-alpha.ledger.1) - 2023-03-15
+
+### Bug Fixes
+
+* (cli) [#16](https://github.com/evmos/cosmos-sdk/pull/16) Set `--fees` flag default value to empty string
+
+## [v0.46.10-ledger](https://github.com/evmos/cosmos-sdk/releases/tag/v0.46.10-ledger) - 2023-02-24
+
+### Improvements
+
+* (cli) [#14953](https://github.com/cosmos/cosmos-sdk/pull/14953) Enable profiling block replay during abci handshake with `--cpu-profile`.
+* (store) [#14410](https://github.com/cosmos/cosmos-sdk/pull/14410) `rootmulti.Store.loadVersion` has validation to check if all the module stores' height is correct, it will error if any module store has incorrect height.
+* (cli) [#8](https://github.com/evmos/cosmos-sdk/pull/8) Add `auto` option for fees flag
+* (grpc) [#13144](https://github.com/cosmos/cosmos-sdk/pull/13144) Add validator distribution info grpc gateway get endpoint.
+
+
+## [v0.46.9](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.46.9) - 2022-02-07
+
+### Improvements
+
+* (deps) [#14846](https://github.com/cosmos/cosmos-sdk/pull/14846) Bump btcd.
+* (deps) Bump Tendermint version to [v0.34.26](https://github.com/informalsystems/tendermint/releases/tag/v0.34.26).
+* (store) [#14189](https://github.com/cosmos/cosmos-sdk/pull/14189) Add config `iavl-lazy-loading` to enable lazy loading of iavl store, to improve start up time of archive nodes, add method `SetLazyLoading` to `CommitMultiStore` interface.
+    * A new field has been added to the app.toml. This alllows nodes with larger databases to startup quicker 
+
+    ```toml
+    # IAVLLazyLoading enable/disable the lazy loading of iavl store.
+    # Default is false.
+    iavl-lazy-loading = ""  
+  ```
+
+### Bug Fixes
+
+* (cli) [#14919](https://github.com/cosmos/cosmos-sdk/pull/#14919) Fix never assigned error when write validators.
+* (store) [#14798](https://github.com/cosmos/cosmos-sdk/pull/14798) Copy btree to avoid the problem of modify while iteration.
+* (cli) [#14799](https://github.com/cosmos/cosmos-sdk/pull/14799) Fix Evidence CLI query flag parsing (backport #13458)
+
+## [v0.46.8](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.46.8) - 2023-01-23
+
+### Improvements
+
+* [#13881](https://github.com/cosmos/cosmos-sdk/pull/13881) Optimize iteration on nested cached KV stores and other operations in general.
+* (x/gov) [#14347](https://github.com/cosmos/cosmos-sdk/pull/14347) Support `v1.Proposal` message in `v1beta1.Proposal.Content`.
+* (deps) Use Informal System fork of Tendermint version to [v0.34.24](https://github.com/informalsystems/tendermint/releases/tag/v0.34.24).
+
+### Bug Fixes
+
+* (x/group) [#14526](https://github.com/cosmos/cosmos-sdk/pull/14526) Fix wrong address set in `EventUpdateGroupPolicy`.
+* (ante) [#14448](https://github.com/cosmos/cosmos-sdk/pull/14448) Return anteEvents when postHandler fail.
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
+
+### API Breaking
+
+* (x/gov) [#14422](https://github.com/cosmos/cosmos-sdk/pull/14422) Remove `Migrate_V046_6_To_V046_7` function which shouldn't be used for chains which already migrated to 0.46.
 
 ## [v0.46.16](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.46.16) - 2023-11-07
 

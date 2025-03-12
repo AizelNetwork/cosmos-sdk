@@ -39,7 +39,11 @@ func TestChainPostDecorators(t *testing.T) {
 	require.Nil(t, sdk.ChainPostDecorators([]sdk.PostDecorator{}...))
 
 	// Create empty context as well as transaction
+<<<<<<< HEAD
 	ctx := sdk.Context{}.WithExecMode(sdk.ExecModeSimulate)
+=======
+	ctx := sdk.Context{}
+>>>>>>> 7a885823bc4a8a72c41dcd1381cba9819f487349
 	tx := sdk.Tx(nil)
 
 	// Create mocks
