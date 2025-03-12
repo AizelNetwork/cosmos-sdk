@@ -1,4 +1,4 @@
-module github.com/AizelNetwork/cosmos-sdk/x/nft
+module cosmossdk.io/x/nft
 
 go 1.23.2
 
@@ -10,7 +10,6 @@ require (
 	cosmossdk.io/log v1.5.0
 	cosmossdk.io/math v1.4.0
 	cosmossdk.io/store v1.10.0-rc.1
-	cosmossdk.io/x/nft v0.0.0-00010101000000-000000000000
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/gogoproto v1.7.0
@@ -165,6 +164,5 @@ replace github.com/cosmos/cosmos-sdk => ../../.
 // TODO remove post spinning out all modules
 replace (
 	cosmossdk.io/x/bank => ../bank
-	cosmossdk.io/x/nft => ../nft
 	cosmossdk.io/x/staking => ../staking
 )
