@@ -1,6 +1,6 @@
 go 1.23.2
 
-module github.com/cosmos/cosmos-sdk
+module github.com/AizelNetwork/cosmos-sdk
 
 require (
 	cosmossdk.io/api v0.8.0-rc.3
@@ -23,6 +23,7 @@ require (
 	github.com/cosmos/btcutil v1.0.5
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
+	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ledger-cosmos-go v0.14.0
@@ -183,6 +184,7 @@ replace (
 replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	github.com/cosmos/cosmos-sdk => github.com/AizelNetwork/cosmos-sdk v1.2.3
 
 	// replace broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
