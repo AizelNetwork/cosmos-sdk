@@ -112,6 +112,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 						{ProtoField: "description", Optional: true},
 						// Then 'uri' and 'uri_hash' as optional as well.
 						{ProtoField: "uri", Optional: true},
+						// uri_hash is optional
 						{ProtoField: "uri_hash", Optional: true},
 					},
 				},
