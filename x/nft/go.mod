@@ -1,4 +1,4 @@
-module cosmossdk.io/x/nft
+module github.com/AizelNetwork/cosmos-sdk/x/nft
 
 go 1.23.2
 

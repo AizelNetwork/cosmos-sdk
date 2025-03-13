@@ -1,6 +1,6 @@
 go 1.23.2
 
-module github.com/cosmos/cosmos-sdk
+module github.com/AizelNetwork/cosmos-sdk
 
 require (
 	cosmossdk.io/api v0.8.0-rc.3
